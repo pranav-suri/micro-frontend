@@ -8,4 +8,3 @@ fetch('/assets/module-federation.manifest.json')
     console.error('Error loading remote entries', err);
     import('./bootstrap');
   });
-# Force frontend rebuild
