@@ -2,6 +2,7 @@ import { composePlugins, withNx } from '@nx/webpack';
 import { withReact } from '@nx/react';
 import { withModuleFederation } from '@nx/module-federation/webpack.js';
 import { ModuleFederationConfig } from '@nx/module-federation';
+import webpack from 'webpack';
 
 import baseConfig from './module-federation.config';
 
@@ -32,6 +33,25 @@ export default composePlugins(
   withReact(),
   withModuleFederation(prodConfig, { dts: false }),
   (config) => {
+    // Add environment variables
+    config.plugins = config.plugins || [];
+    config.plugins.push(
+      new webpack.DefinePlugin({
+        'process.env.REACT_APP_API_USERS_URL': JSON.stringify(
+          process.env.REACT_APP_API_USERS_URL ||
+            'http://micro-frontend-api-alb-dev-931650639.us-east-1.elb.amazonaws.com/api/users'
+        ),
+        'process.env.REACT_APP_API_ORDERS_URL': JSON.stringify(
+          process.env.REACT_APP_API_ORDERS_URL ||
+            'http://micro-frontend-api-alb-dev-931650639.us-east-1.elb.amazonaws.com/api/orders'
+        ),
+        'process.env.REACT_APP_API_PRODUCTS_URL': JSON.stringify(
+          process.env.REACT_APP_API_PRODUCTS_URL ||
+            'http://micro-frontend-api-alb-dev-931650639.us-east-1.elb.amazonaws.com/api/products'
+        ),
+      })
+    );
+
     // Add Node.js externals to prevent bundling Node.js modules
     config.externals = config.externals || [];
     config.externals.push({

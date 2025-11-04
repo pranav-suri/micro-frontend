@@ -358,10 +358,10 @@ resource "aws_ecs_task_definition" "api_users" {
         }
       }
       healthCheck = {
-        command = ["CMD-SHELL", "curl -f http://localhost:3000/ || exit 1"]
+        command  = ["CMD-SHELL", "curl -f http://localhost:3000/ || exit 1"]
         interval = 30
-        timeout = 5
-        retries = 3
+        timeout  = 5
+        retries  = 3
       }
     }
   ])
@@ -407,10 +407,10 @@ resource "aws_ecs_task_definition" "api_orders" {
         }
       }
       healthCheck = {
-        command = ["CMD-SHELL", "curl -f http://localhost:3000/ || exit 1"]
+        command  = ["CMD-SHELL", "curl -f http://localhost:3000/ || exit 1"]
         interval = 30
-        timeout = 5
-        retries = 3
+        timeout  = 5
+        retries  = 3
       }
     }
   ])
@@ -456,10 +456,10 @@ resource "aws_ecs_task_definition" "api_products" {
         }
       }
       healthCheck = {
-        command = ["CMD-SHELL", "curl -f http://localhost:3000/ || exit 1"]
+        command  = ["CMD-SHELL", "curl -f http://localhost:3000/ || exit 1"]
         interval = 30
-        timeout = 5
-        retries = 3
+        timeout  = 5
+        retries  = 3
       }
     }
   ])
@@ -520,7 +520,7 @@ resource "aws_iam_role" "ecs_task_role" {
   }
 }
 
-# ECS Services (Simplified - Public IP access)
+# ECS Services (with Load Balancer)
 resource "aws_ecs_service" "api_users" {
   name            = "api-users-service"
   cluster         = aws_ecs_cluster.main.id
@@ -533,6 +533,14 @@ resource "aws_ecs_service" "api_users" {
     security_groups  = [aws_security_group.ecs_tasks.id]
     assign_public_ip = true
   }
+
+  load_balancer {
+    target_group_arn = aws_lb_target_group.api_users.arn
+    container_name   = "api-users"
+    container_port   = 3000
+  }
+
+  depends_on = [aws_lb_listener.api]
 
   tags = {
     Name        = "API Users Service"
@@ -553,6 +561,14 @@ resource "aws_ecs_service" "api_orders" {
     assign_public_ip = true
   }
 
+  load_balancer {
+    target_group_arn = aws_lb_target_group.api_orders.arn
+    container_name   = "api-orders"
+    container_port   = 3000
+  }
+
+  depends_on = [aws_lb_listener.api]
+
   tags = {
     Name        = "API Orders Service"
     Environment = var.environment
@@ -571,6 +587,14 @@ resource "aws_ecs_service" "api_products" {
     security_groups  = [aws_security_group.ecs_tasks.id]
     assign_public_ip = true
   }
+
+  load_balancer {
+    target_group_arn = aws_lb_target_group.api_products.arn
+    container_name   = "api-products"
+    container_port   = 3000
+  }
+
+  depends_on = [aws_lb_listener.api]
 
   tags = {
     Name        = "API Products Service"
@@ -592,10 +616,11 @@ resource "aws_security_group" "ecs_tasks" {
   description = "Security group for ECS tasks"
 
   ingress {
-    from_port   = 3000
-    to_port     = 3000
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    from_port       = 3000
+    to_port         = 3000
+    protocol        = "tcp"
+    security_groups = [aws_security_group.alb.id]
+    description     = "Allow traffic from ALB"
   }
 
   egress {
@@ -612,6 +637,102 @@ resource "aws_security_group" "ecs_tasks" {
 }
 
 
+
+# S3 Bucket Policies for CloudFront OAI
+resource "aws_s3_bucket_policy" "shell" {
+  bucket = aws_s3_bucket.shell.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid    = "AllowCloudFrontAccess"
+        Effect = "Allow"
+        Principal = {
+          AWS = aws_cloudfront_origin_access_identity.oai.iam_arn
+        }
+        Action   = "s3:GetObject"
+        Resource = "${aws_s3_bucket.shell.arn}/*"
+      }
+    ]
+  })
+}
+
+resource "aws_s3_bucket_policy" "dashboard" {
+  bucket = aws_s3_bucket.dashboard.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid    = "AllowCloudFrontAccess"
+        Effect = "Allow"
+        Principal = {
+          AWS = aws_cloudfront_origin_access_identity.oai.iam_arn
+        }
+        Action   = "s3:GetObject"
+        Resource = "${aws_s3_bucket.dashboard.arn}/*"
+      }
+    ]
+  })
+}
+
+resource "aws_s3_bucket_policy" "orders" {
+  bucket = aws_s3_bucket.orders.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid    = "AllowCloudFrontAccess"
+        Effect = "Allow"
+        Principal = {
+          AWS = aws_cloudfront_origin_access_identity.oai.iam_arn
+        }
+        Action   = "s3:GetObject"
+        Resource = "${aws_s3_bucket.orders.arn}/*"
+      }
+    ]
+  })
+}
+
+resource "aws_s3_bucket_policy" "products" {
+  bucket = aws_s3_bucket.products.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid    = "AllowCloudFrontAccess"
+        Effect = "Allow"
+        Principal = {
+          AWS = aws_cloudfront_origin_access_identity.oai.iam_arn
+        }
+        Action   = "s3:GetObject"
+        Resource = "${aws_s3_bucket.products.arn}/*"
+      }
+    ]
+  })
+}
+
+resource "aws_s3_bucket_policy" "analytics" {
+  bucket = aws_s3_bucket.analytics.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid    = "AllowCloudFrontAccess"
+        Effect = "Allow"
+        Principal = {
+          AWS = aws_cloudfront_origin_access_identity.oai.iam_arn
+        }
+        Action   = "s3:GetObject"
+        Resource = "${aws_s3_bucket.analytics.arn}/*"
+      }
+    ]
+  })
+}
 
 # CloudWatch Log Groups
 resource "aws_cloudwatch_log_group" "api_users" {
@@ -669,8 +790,8 @@ output "s3_bucket_names" {
 output "ecr_repository_urls" {
   description = "ECR Repository URLs for Docker images"
   value = {
-    api_users   = aws_ecr_repository.api_users.repository_url
-    api_orders  = aws_ecr_repository.api_orders.repository_url
+    api_users    = aws_ecr_repository.api_users.repository_url
+    api_orders   = aws_ecr_repository.api_orders.repository_url
     api_products = aws_ecr_repository.api_products.repository_url
   }
 }

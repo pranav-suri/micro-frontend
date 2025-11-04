@@ -170,6 +170,21 @@ npx nx serve analytics
 
 ## 🚀 Deployment
 
+### ✅ Current Deployment Status
+
+**Infrastructure**: ✅ Deployed on AWS
+- **CloudFront Distribution**: `https://d1osxfiyfuu861.cloudfront.net`
+- **S3 Buckets**: 5 buckets for frontend apps
+- **ECS Cluster**: `micro-frontend-cluster-dev` with 3 Fargate services
+- **ECR Repositories**: 3 repositories for API containers
+
+**Applications**:
+- **Frontend**: ✅ Shell app deployed, micro-frontends partially deployed
+- **Backend APIs**: ✅ Deployed and running
+  - API Users: `http://54.236.41.214:3000`
+  - API Orders: `http://98.93.209.131:3000`
+  - API Products: `http://52.71.4.149:3000`
+
 ### Automatic Deployment (GitHub Actions)
 
 Push to the `main` branch to automatically:

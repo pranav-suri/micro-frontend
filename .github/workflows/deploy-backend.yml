@@ -2,7 +2,7 @@ name: Deploy Backend APIs
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [main, master]
     paths:
       - 'apps/api-*/**'
       - 'package*.json'
@@ -18,117 +18,132 @@ jobs:
     if: contains(github.event_name, 'workflow_dispatch') || github.event_name == 'push'
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v4
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: ${{ env.AWS_REGION }}
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
 
-    - name: Login to Amazon ECR
-      id: login-ecr
-      uses: aws-actions/amazon-ecr-login@v2
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
 
-    - name: Build API application
-      run: |
-        npm ci
-        npx nx build api-users --configuration=production
+      - name: Build API application
+        run: |
+          npm ci
+          npx nx build api-users --configuration=production
 
-    - name: Build and push Docker image
-      env:
-        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        ECR_REPOSITORY: ${{ env.ECR_REPOSITORY_PREFIX }}/api-users
-      run: |
-        # Build Docker image
-        docker build -f apps/api-users/Dockerfile -t $ECR_REGISTRY/$ECR_REPOSITORY:$GITHUB_SHA -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
+      - name: Build and push Docker image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: ${{ env.ECR_REPOSITORY_PREFIX }}/api-users
+        run: |
+          # Build Docker image
+          docker build -f apps/api-users/Dockerfile -t $ECR_REGISTRY/$ECR_REPOSITORY:$GITHUB_SHA -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
 
-        # Push images
-        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$GITHUB_SHA
-        docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+          # Push images
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$GITHUB_SHA
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
 
-        # Export image URI for deployment
-        echo "IMAGE_URI=$ECR_REGISTRY/$ECR_REPOSITORY:$GITHUB_SHA" >> $GITHUB_ENV
+          # Export image URI for deployment
+          echo "IMAGE_URI=$ECR_REGISTRY/$ECR_REPOSITORY:$GITHUB_SHA" >> $GITHUB_ENV
 
-    # Note: ECS services are managed by Terraform
-    # Images are built and pushed to ECR for deployment
+      - name: Force ECS service update
+        run: |
+          aws ecs update-service \
+            --cluster micro-frontend-cluster-dev \
+            --service api-users-service \
+            --force-new-deployment \
+            --region ${{ env.AWS_REGION }}
 
   deploy-api-orders:
     runs-on: ubuntu-latest
     if: contains(github.event_name, 'workflow_dispatch') || github.event_name == 'push'
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v4
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: ${{ env.AWS_REGION }}
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
 
-    - name: Login to Amazon ECR
-      id: login-ecr
-      uses: aws-actions/amazon-ecr-login@v2
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
 
-    - name: Build API application
-      run: |
-        npm ci
-        npx nx build api-orders --configuration=production
+      - name: Build API application
+        run: |
+          npm ci
+          npx nx build api-orders --configuration=production
 
-    - name: Build and push Docker image
-      env:
-        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        ECR_REPOSITORY: ${{ env.ECR_REPOSITORY_PREFIX }}/api-orders
-      run: |
-        # Build Docker image
-        docker build -f apps/api-orders/Dockerfile -t $ECR_REGISTRY/$ECR_REPOSITORY:$GITHUB_SHA -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
+      - name: Build and push Docker image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: ${{ env.ECR_REPOSITORY_PREFIX }}/api-orders
+        run: |
+          # Build Docker image
+          docker build -f apps/api-orders/Dockerfile -t $ECR_REGISTRY/$ECR_REPOSITORY:$GITHUB_SHA -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
 
-        # Push images
-        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$GITHUB_SHA
-        docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+          # Push images
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$GITHUB_SHA
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
 
-    # Note: ECS services are managed by Terraform
-    # Images are built and pushed to ECR for deployment
+      - name: Force ECS service update
+        run: |
+          aws ecs update-service \
+            --cluster micro-frontend-cluster-dev \
+            --service api-orders-service \
+            --force-new-deployment \
+            --region ${{ env.AWS_REGION }}
 
   deploy-api-products:
     runs-on: ubuntu-latest
     if: contains(github.event_name, 'workflow_dispatch') || github.event_name == 'push'
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v4
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: ${{ env.AWS_REGION }}
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
 
-    - name: Login to Amazon ECR
-      id: login-ecr
-      uses: aws-actions/amazon-ecr-login@v2
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
 
-    - name: Build API application
-      run: |
-        npm ci
-        npx nx build api-products --configuration=production
+      - name: Build API application
+        run: |
+          npm ci
+          npx nx build api-products --configuration=production
 
-    - name: Build and push Docker image
-      env:
-        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        ECR_REPOSITORY: ${{ env.ECR_REPOSITORY_PREFIX }}/api-products
-      run: |
-        # Build Docker image
-        docker build -f apps/api-products/Dockerfile -t $ECR_REGISTRY/$ECR_REPOSITORY:$GITHUB_SHA -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
+      - name: Build and push Docker image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: ${{ env.ECR_REPOSITORY_PREFIX }}/api-products
+        run: |
+          # Build Docker image
+          docker build -f apps/api-products/Dockerfile -t $ECR_REGISTRY/$ECR_REPOSITORY:$GITHUB_SHA -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
 
-        # Push images
-        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$GITHUB_SHA
-        docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+          # Push images
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$GITHUB_SHA
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
 
-    # Note: ECS services are managed by Terraform
-    # Images are built and pushed to ECR for deployment
+      - name: Force ECS service update
+        run: |
+          aws ecs update-service \
+            --cluster micro-frontend-cluster-dev \
+            --service api-products-service \
+            --force-new-deployment \
+            --region ${{ env.AWS_REGION }}
