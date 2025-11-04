@@ -40,12 +40,16 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Get ALB DNS name
+      - name: Get ALB DNS name from AWS
         id: get-alb
         run: |
-          cd infrastructure
-          ALB_DNS=$(terraform output -raw alb_dns_name)
+          ALB_DNS=$(aws elbv2 describe-load-balancers \
+            --names micro-frontend-api-alb-dev \
+            --query 'LoadBalancers[0].DNSName' \
+            --output text \
+            --region ${{ env.AWS_REGION }})
           echo "alb_dns=$ALB_DNS" >> $GITHUB_OUTPUT
+          echo "ALB DNS: $ALB_DNS"
 
       - name: Build shell app
         env:
