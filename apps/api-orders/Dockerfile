@@ -1,4 +1,28 @@
-# Use Node.js 20 Alpine for smaller image size
+# Build stage
+FROM node:20-alpine AS builder
+
+# Install curl for health checks
+RUN apk add --no-cache curl
+
+# Set working directory
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Install all dependencies (including dev dependencies for building)
+RUN npm ci
+
+# Copy source code
+COPY apps/api-orders/src ./apps/api-orders/src
+COPY apps/api-orders/tsconfig*.json ./apps/api-orders/
+COPY nx.json ./
+COPY tsconfig.base.json ./
+
+# Build the application
+RUN npx nx build api-orders --configuration=production
+
+# Production stage
 FROM node:20-alpine
 
 # Install curl for health checks
@@ -7,18 +31,14 @@ RUN apk add --no-cache curl
 # Set working directory
 WORKDIR /app
 
-# Copy package files from root
+# Copy package files
 COPY package*.json ./
 
-# Install dependencies
+# Install only production dependencies
 RUN npm ci --only=production
 
-# Copy source code
-COPY apps/api-orders/src ./apps/api-orders/src
-COPY apps/api-orders/tsconfig*.json ./apps/api-orders/
-
-# Build the application
-RUN npx nx build api-orders
+# Copy built application from builder stage
+COPY --from=builder /app/dist/apps/api-orders ./dist
 
 # Expose port
 EXPOSE 3000
@@ -28,4 +48,4 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD curl -f http://localhost:3000/ || exit 1
 
 # Start the application
-CMD ["npx", "nx", "serve", "api-orders"]
+CMD ["node", "dist/main.js"]
