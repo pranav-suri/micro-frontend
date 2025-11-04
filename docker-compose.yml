@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  api-users:
+    build:
+      context: .
+      dockerfile: apps/api-users/Dockerfile
+    ports:
+      - "3001:3000"
+    environment:
+      - NODE_ENV=development
+      - PORT=3000
+    networks:
+      - micro-frontend-network
+
+  api-orders:
+    build:
+      context: .
+      dockerfile: apps/api-orders/Dockerfile
+    ports:
+      - "3002:3000"
+    environment:
+      - NODE_ENV=development
+      - PORT=3000
+    networks:
+      - micro-frontend-network
+
+  api-products:
+    build:
+      context: .
+      dockerfile: apps/api-products/Dockerfile
+    ports:
+      - "3003:3000"
+    environment:
+      - NODE_ENV=development
+      - PORT=3000
+    networks:
+      - micro-frontend-network
+
+networks:
+  micro-frontend-network:
+    driver: bridge

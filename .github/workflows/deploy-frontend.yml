@@ -1,0 +1,82 @@
+name: Deploy Frontend Apps
+
+on:
+  push:
+    branches: [ main, master ]
+    paths:
+      - 'apps/shell/**'
+      - 'apps/dashboard/**'
+      - 'apps/orders/**'
+      - 'apps/products/**'
+      - 'apps/analytics/**'
+      - 'shared-*/**'
+      - 'package*.json'
+      - '.github/workflows/deploy-frontend.yml'
+
+env:
+  AWS_REGION: us-east-1
+
+jobs:
+  deploy-frontend:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.AWS_REGION }}
+
+    - name: Build shell app
+      run: npx nx build shell --configuration=production
+
+    - name: Build dashboard app
+      run: npx nx build dashboard --configuration=production
+
+    - name: Build orders app
+      run: npx nx build orders --configuration=production
+
+    - name: Build products app
+      run: npx nx build products --configuration=production
+
+    - name: Build analytics app
+      run: npx nx build analytics --configuration=production
+
+    - name: Deploy shell to S3
+      run: |
+        aws s3 sync dist/apps/shell s3://micro-frontend-shell-2025-dev --delete --exact-timestamps
+
+    - name: Deploy dashboard to S3
+      run: |
+        aws s3 sync dist/apps/dashboard s3://micro-frontend-dashboard-2025-dev --delete --exact-timestamps
+
+    - name: Deploy orders to S3
+      run: |
+        aws s3 sync dist/apps/orders s3://micro-frontend-orders-2025-dev --delete --exact-timestamps
+
+    - name: Deploy products to S3
+      run: |
+        aws s3 sync dist/apps/products s3://micro-frontend-products-2025-dev --delete --exact-timestamps
+
+    - name: Deploy analytics to S3
+      run: |
+        aws s3 sync dist/apps/analytics s3://micro-frontend-analytics-2025-dev --delete --exact-timestamps
+
+    - name: Invalidate CloudFront cache
+      run: |
+        aws cloudfront create-invalidation \
+          --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }} \
+          --paths "/*"

@@ -1,0 +1,127 @@
+# Micro-Frontend Monorepo Project Rules
+
+## Project Overview
+This is an Nx monorepo implementing a micro-frontend architecture using Module Federation with complete AWS deployment infrastructure. The project consists of:
+- **Shell application** (port 4200): Main container that loads micro-frontend remotes
+- **Micro-frontend apps**: dashboard, analytics, products, orders
+- **API services**: api-users (3001), api-orders (3002), api-products (3003)
+- **Shared libraries**: shared-ui, shared-types, shared-utils, shared-data-access
+
+## Current Project State ✅
+
+### ✅ COMPLETED INFRASTRUCTURE
+- **AWS Infrastructure**: Fully deployed with Terraform
+  - S3 buckets: micro-frontend-{app}-2025-dev for each frontend app
+  - CloudFront Distribution: E2YDLTHDO3Q6GR (d1osxfiyfuu861.cloudfront.net)
+  - ECR Repositories: micro-frontend/api-{service}
+  - ECS Cluster: micro-frontend-cluster-dev
+  - IAM Roles and CloudWatch logging
+
+### ✅ COMPLETED DEPLOYMENT SETUP
+- **CI/CD Pipelines**: GitHub Actions workflows for automated deployment
+- **Containerization**: Dockerfiles for all API services
+- **Environment Config**: Production/staging environment files
+- **Documentation**: Complete setup and deployment guides
+
+### 🚧 REMAINING TASKS
+- **Production Webpack Builds**: Configure optimized production builds for frontend apps
+- **API Gateway**: Set up API Gateway for backend service routing
+- **SSL Certificates**: Configure custom domain and SSL certificates
+- **End-to-End Testing**: Test complete deployment pipeline
+
+## Architecture
+- Built with Nx workspace and React 19 + TypeScript
+- Uses Module Federation for micro-frontend communication
+- Shell app loads remotes: ['dashboard', 'analytics', 'products', 'orders']
+- APIs are containerized Express.js servers on AWS ECS Fargate
+- Shared libraries contain reusable components and utilities
+- **Production**: Served via CloudFront CDN with S3 origins
+
+## Development Setup
+
+### Local Development (Quick Start)
+```bash
+# Install dependencies
+npm install
+
+# Start all API services with Docker Compose
+docker-compose up
+
+# Start frontend apps (in separate terminals)
+npx nx serve shell          # Main app (port 4200)
+npx nx serve dashboard      # Dashboard (port 4301)
+npx nx serve analytics      # Analytics (port 4302)
+npx nx serve products       # Products (port 4303)
+npx nx serve orders         # Orders (port 4304)
+```
+
+### Production Deployment
+```bash
+# Deploy infrastructure
+cd infrastructure && terraform apply -var="environment=dev"
+
+# Deploy application (automatic via GitHub Actions on push to main)
+git push origin main
+```
+
+## Key Technologies
+- **Framework**: React 19, TypeScript
+- **Build Tool**: Nx with Webpack Module Federation
+- **Backend**: Express.js, Node.js (Docker + AWS ECS)
+- **Infrastructure**: AWS (S3, CloudFront, ECR, ECS Fargate)
+- **CI/CD**: GitHub Actions
+- **IaC**: Terraform
+- **Styling**: SCSS
+- **Testing**: Jest, Vitest, Playwright (e2e)
+
+## Development Commands
+- `npx nx serve <app-name>` - Start development server for an app
+- `npx nx build <app-name>` - Build an application
+- `npx nx test <app-name>` - Run tests for an app
+- `npx nx lint <app-name>` - Lint an application
+- `npx nx graph` - Visualize project dependencies
+- `docker-compose up` - Start all API services locally
+- `docker-compose down` - Stop all API services
+
+## Deployment Commands
+- `cd infrastructure && terraform init` - Initialize Terraform
+- `cd infrastructure && terraform plan -var="environment=dev"` - Plan infrastructure changes
+- `cd infrastructure && terraform apply -var="environment=dev"` - Deploy infrastructure
+- `cd infrastructure && terraform destroy -var="environment=dev"` - Destroy all AWS resources
+
+## File Structure
+- `apps/` - Applications (shell, micro-frontends, APIs)
+- `shared-*/` - Shared libraries and utilities
+- `infrastructure/` - AWS Terraform configurations
+- `environments/` - Environment-specific configurations
+- `.github/workflows/` - CI/CD pipeline definitions
+- `nx.json` - Nx workspace configuration
+- `tsconfig.base.json` - Base TypeScript configuration
+- `docker-compose.yml` - Local API services orchestration
+
+## AWS Resources (Current Deployment)
+- **CloudFront**: https://d1osxfiyfuu861.cloudfront.net
+- **S3 Buckets**: micro-frontend-{shell,dashboard,orders,products,analytics}-2025-dev
+- **ECR Repos**: micro-frontend/api-{users,orders,products}
+- **ECS Cluster**: micro-frontend-cluster-dev
+- **Region**: us-east-1
+
+## Important Notes
+- **AWS Credentials**: Configure via `aws configure` or ~/.aws/credentials
+- **API Ports**: Services run on different ports (3001, 3002, 3003) in development
+- **Module Federation**: Shell app loads remotes from `/assets/module-federation.manifest.json`
+- **Production URLs**: Apps served from CloudFront with path-based routing
+- **GitHub Secrets**: Set CLOUDFRONT_DISTRIBUTION_ID for CI/CD deployment
+
+## Next Steps & Priorities
+1. **High Priority**: Configure production webpack builds for frontend apps
+2. **Medium Priority**: Set up API Gateway for unified backend routing
+3. **Medium Priority**: Configure custom domain and SSL certificates
+4. **Low Priority**: Implement end-to-end deployment testing
+5. **Future**: Add monitoring, alerting, and backup strategies
+
+## Troubleshooting
+- **Terraform Issues**: Run `terraform destroy` then `terraform apply`
+- **Build Errors**: Clear Nx cache with `npx nx reset`
+- **AWS Permissions**: Ensure IAM user has S3, CloudFront, ECR, ECS permissions
+- **Port Conflicts**: Check if ports 3001-3003, 4200, 4301-4304 are available

@@ -1,0 +1,6 @@
+{
+  "dashboard": "http://localhost:4301",
+  "analytics": "http://localhost:4302",
+  "products": "http://localhost:4303",
+  "orders": "http://localhost:4304"
+}
