@@ -92,19 +92,19 @@ jobs:
 
       - name: Deploy dashboard to S3
         run: |
-          aws s3 sync dist/apps/dashboard s3://micro-frontend-dashboard-2025-dev --delete --exact-timestamps
+          aws s3 sync dist/apps/dashboard s3://micro-frontend-dashboard-2025-dev/dashboard --delete --exact-timestamps
 
       - name: Deploy orders to S3
         run: |
-          aws s3 sync dist/apps/orders s3://micro-frontend-orders-2025-dev --delete --exact-timestamps
+          aws s3 sync dist/apps/orders s3://micro-frontend-orders-2025-dev/orders --delete --exact-timestamps
 
       - name: Deploy products to S3
         run: |
-          aws s3 sync dist/apps/products s3://micro-frontend-products-2025-dev --delete --exact-timestamps
+          aws s3 sync dist/apps/products s3://micro-frontend-products-2025-dev/products --delete --exact-timestamps
 
       - name: Deploy analytics to S3
         run: |
-          aws s3 sync dist/apps/analytics s3://micro-frontend-analytics-2025-dev --delete --exact-timestamps
+          aws s3 sync dist/apps/analytics s3://micro-frontend-analytics-2025-dev/analytics --delete --exact-timestamps
 
       - name: Invalidate CloudFront cache
         run: |

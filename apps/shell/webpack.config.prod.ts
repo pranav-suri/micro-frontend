@@ -33,7 +33,7 @@ export default composePlugins(
   (config, context) => {
     // Add environment variables using webpack from context
     const { DefinePlugin } = require('webpack');
-    
+
     config.plugins = config.plugins || [];
     config.plugins.push(
       new DefinePlugin({

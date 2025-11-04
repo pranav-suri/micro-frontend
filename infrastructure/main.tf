@@ -122,6 +122,7 @@ resource "aws_cloudfront_distribution" "main" {
   origin {
     domain_name = aws_s3_bucket.dashboard.bucket_regional_domain_name
     origin_id   = "dashboard"
+    origin_path = "/dashboard"
 
     s3_origin_config {
       origin_access_identity = aws_cloudfront_origin_access_identity.oai.cloudfront_access_identity_path
@@ -131,6 +132,7 @@ resource "aws_cloudfront_distribution" "main" {
   origin {
     domain_name = aws_s3_bucket.orders.bucket_regional_domain_name
     origin_id   = "orders"
+    origin_path = "/orders"
 
     s3_origin_config {
       origin_access_identity = aws_cloudfront_origin_access_identity.oai.cloudfront_access_identity_path
@@ -140,6 +142,7 @@ resource "aws_cloudfront_distribution" "main" {
   origin {
     domain_name = aws_s3_bucket.products.bucket_regional_domain_name
     origin_id   = "products"
+    origin_path = "/products"
 
     s3_origin_config {
       origin_access_identity = aws_cloudfront_origin_access_identity.oai.cloudfront_access_identity_path
@@ -149,6 +152,7 @@ resource "aws_cloudfront_distribution" "main" {
   origin {
     domain_name = aws_s3_bucket.analytics.bucket_regional_domain_name
     origin_id   = "analytics"
+    origin_path = "/analytics"
 
     s3_origin_config {
       origin_access_identity = aws_cloudfront_origin_access_identity.oai.cloudfront_access_identity_path
