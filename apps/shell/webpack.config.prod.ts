@@ -11,10 +11,10 @@ const prodConfig: ModuleFederationConfig = {
    * Each entry is a pair of a unique name and the URL where it is deployed.
    */
   remotes: [
-    ['dashboard', 'dashboard@https://d1osxfiyfuu861.cloudfront.net/dashboard/'],
-    ['analytics', 'analytics@https://d1osxfiyfuu861.cloudfront.net/analytics/'],
-    ['products', 'products@https://d1osxfiyfuu861.cloudfront.net/products/'],
-    ['orders', 'orders@https://d1osxfiyfuu861.cloudfront.net/orders/'],
+    ['dashboard', 'https://d1osxfiyfuu861.cloudfront.net/dashboard/'],
+    ['analytics', 'https://d1osxfiyfuu861.cloudfront.net/analytics/'],
+    ['products', 'https://d1osxfiyfuu861.cloudfront.net/products/'],
+    ['orders', 'https://d1osxfiyfuu861.cloudfront.net/orders/'],
   ],
 };
 
