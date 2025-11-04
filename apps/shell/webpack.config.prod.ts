@@ -2,8 +2,6 @@ import { composePlugins, withNx } from '@nx/webpack';
 import { withReact } from '@nx/react';
 import { withModuleFederation } from '@nx/module-federation/webpack.js';
 import { ModuleFederationConfig } from '@nx/module-federation';
-import webpack from 'webpack';
-
 import baseConfig from './module-federation.config';
 
 const prodConfig: ModuleFederationConfig = {
@@ -32,11 +30,13 @@ export default composePlugins(
   }),
   withReact(),
   withModuleFederation(prodConfig, { dts: false }),
-  (config) => {
-    // Add environment variables
+  (config, context) => {
+    // Add environment variables using webpack from context
+    const { DefinePlugin } = require('webpack');
+    
     config.plugins = config.plugins || [];
     config.plugins.push(
-      new webpack.DefinePlugin({
+      new DefinePlugin({
         'process.env.REACT_APP_API_USERS_URL': JSON.stringify(
           process.env.REACT_APP_API_USERS_URL ||
             'http://micro-frontend-api-alb-dev-931650639.us-east-1.elb.amazonaws.com/api/users'
