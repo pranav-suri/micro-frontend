@@ -520,6 +520,99 @@ resource "aws_iam_role" "ecs_task_role" {
   }
 }
 
+# ECS Services (Simplified - Public IP access)
+resource "aws_ecs_service" "api_users" {
+  name            = "api-users-service"
+  cluster         = aws_ecs_cluster.main.id
+  task_definition = aws_ecs_task_definition.api_users.arn
+  desired_count   = 1
+  launch_type     = "FARGATE"
+
+  network_configuration {
+    subnets          = data.aws_subnets.default.ids
+    security_groups  = [aws_security_group.ecs_tasks.id]
+    assign_public_ip = true
+  }
+
+  tags = {
+    Name        = "API Users Service"
+    Environment = var.environment
+  }
+}
+
+resource "aws_ecs_service" "api_orders" {
+  name            = "api-orders-service"
+  cluster         = aws_ecs_cluster.main.id
+  task_definition = aws_ecs_task_definition.api_orders.arn
+  desired_count   = 1
+  launch_type     = "FARGATE"
+
+  network_configuration {
+    subnets          = data.aws_subnets.default.ids
+    security_groups  = [aws_security_group.ecs_tasks.id]
+    assign_public_ip = true
+  }
+
+  tags = {
+    Name        = "API Orders Service"
+    Environment = var.environment
+  }
+}
+
+resource "aws_ecs_service" "api_products" {
+  name            = "api-products-service"
+  cluster         = aws_ecs_cluster.main.id
+  task_definition = aws_ecs_task_definition.api_products.arn
+  desired_count   = 1
+  launch_type     = "FARGATE"
+
+  network_configuration {
+    subnets          = data.aws_subnets.default.ids
+    security_groups  = [aws_security_group.ecs_tasks.id]
+    assign_public_ip = true
+  }
+
+  tags = {
+    Name        = "API Products Service"
+    Environment = var.environment
+  }
+}
+
+# Data source for default subnets
+data "aws_subnets" "default" {
+  filter {
+    name   = "default-for-az"
+    values = ["true"]
+  }
+}
+
+# Security Group for ECS Tasks
+resource "aws_security_group" "ecs_tasks" {
+  name        = "ecs-tasks-sg-${var.environment}"
+  description = "Security group for ECS tasks"
+
+  ingress {
+    from_port   = 3000
+    to_port     = 3000
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name        = "ECS Tasks Security Group"
+    Environment = var.environment
+  }
+}
+
+
+
 # CloudWatch Log Groups
 resource "aws_cloudwatch_log_group" "api_users" {
   name              = "/ecs/api-users-${var.environment}"
