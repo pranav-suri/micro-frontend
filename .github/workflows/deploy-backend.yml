@@ -40,7 +40,7 @@ jobs:
     - name: Build and push Docker image
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        ECR_REPOSITORY: ${{ env.ECR_REPOSITORY_PREFIX }}-api-users
+        ECR_REPOSITORY: ${{ env.ECR_REPOSITORY_PREFIX }}/api-users
       run: |
         # Build Docker image
         docker build -f apps/api-users/Dockerfile -t $ECR_REGISTRY/$ECR_REPOSITORY:$GITHUB_SHA -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
@@ -82,7 +82,7 @@ jobs:
     - name: Build and push Docker image
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        ECR_REPOSITORY: ${{ env.ECR_REPOSITORY_PREFIX }}-api-orders
+        ECR_REPOSITORY: ${{ env.ECR_REPOSITORY_PREFIX }}/api-orders
       run: |
         # Build Docker image
         docker build -f apps/api-orders/Dockerfile -t $ECR_REGISTRY/$ECR_REPOSITORY:$GITHUB_SHA -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
@@ -121,7 +121,7 @@ jobs:
     - name: Build and push Docker image
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        ECR_REPOSITORY: ${{ env.ECR_REPOSITORY_PREFIX }}-api-products
+        ECR_REPOSITORY: ${{ env.ECR_REPOSITORY_PREFIX }}/api-products
       run: |
         # Build Docker image
         docker build -f apps/api-products/Dockerfile -t $ECR_REGISTRY/$ECR_REPOSITORY:$GITHUB_SHA -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
