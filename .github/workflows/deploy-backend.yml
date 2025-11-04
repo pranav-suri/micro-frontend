@@ -15,7 +15,7 @@ env:
 jobs:
   deploy-api-users:
     runs-on: ubuntu-latest
-    if: contains(github.event.head_commit.modified, 'apps/api-users') || github.event_name == 'workflow_dispatch'
+    if: contains(github.event_name, 'workflow_dispatch') || github.event_name == 'push'
 
     steps:
     - name: Checkout code
@@ -52,7 +52,7 @@ jobs:
 
   deploy-api-orders:
     runs-on: ubuntu-latest
-    if: contains(github.event.head_commit.modified, 'apps/api-orders') || github.event_name == 'workflow_dispatch'
+    if: contains(github.event_name, 'workflow_dispatch') || github.event_name == 'push'
 
     steps:
     - name: Checkout code
@@ -86,7 +86,7 @@ jobs:
 
   deploy-api-products:
     runs-on: ubuntu-latest
-    if: contains(github.event.head_commit.modified, 'apps/api-products') || github.event_name == 'workflow_dispatch'
+    if: contains(github.event_name, 'workflow_dispatch') || github.event_name == 'push'
 
     steps:
     - name: Checkout code
