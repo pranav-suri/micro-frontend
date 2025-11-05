@@ -46,3 +46,5 @@ app.get('/api/orders/:id', (req, res) => {
 app.listen(port, host, () => {
   console.log(`[ ready ] http://${host}:${port}`);
 });
+
+// Deployement
